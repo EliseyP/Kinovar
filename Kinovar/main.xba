@@ -17,7 +17,7 @@ sub InitSymbols
 	Titlo		= chr(&amp;H0483)
 end sub	
 
-Sub SetKinovarToSelected(oCursor)
+Sub SetKinovarToCursor(oCursor)
 rem установить для текста в курсоре стиль киноварь
 	Dim oStyleFamilies As Variant
 	Dim oStyleFamilie As Variant
@@ -63,22 +63,37 @@ Sub SetKinovar()
 	   	&apos; первый символ абзаца
 	   	.gotoStartOfParagraph(False)
 	   	.goRight(1, True)
-	   	SetKinovarToSelected(oTC)
+	   	SetKinovarToCursor(oTC)
 	   	.CollapseToEnd
 		 
 		&apos;надстрочники	   	
 	   	.goRight(1, True)
 	   	&apos; второй символ, звательце (или титло)
 	   	if .getString = Zvatelce or .getString = Titlo Then
-	   		SetKinovarToSelected(oTC)
+	   		SetKinovarToCursor(oTC)
 	   		.CollapseToEnd
 	   		.goRight(1, True)
 	   		&apos; третий символ - оксия  или вария
 	   		If .getString = OXia OR .getString = Varia Then
-				SetKinovarToSelected(oTC)
+				SetKinovarToCursor(oTC)
 			End If
 	   	End if
 	End With
 End Sub
 
+Sub setKinToSelected
+&apos;BasicLibraries.LoadLibrary(&quot;XrayTool&quot;)
+	&apos; установить для выделенного текста
+	&apos; стиль киноварь
+	Dim all_selections
+	Dim first_selection
+	Dim oDoc, oTC
+
+	oDoc = ThisComponent
+    all_selections = oDoc.getCurrentController().getSelection()
+    first_selection = all_selections.getByIndex(0)
+   	oTC = oDoc.Text.createTextCursorByRange(first_selection)
+	
+	SetKinovarToCursor(oTC)
+End sub
 </script:module>
