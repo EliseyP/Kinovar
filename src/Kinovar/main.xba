@@ -11,6 +11,7 @@ Dim Titlo
 Dim Pokrytie
 Dim SUnder
 
+
 sub InitSymbols
 	Oxia		= chr(&amp;H0301)
 	Varia		= chr(&amp;H0300)
@@ -21,14 +22,156 @@ sub InitSymbols
 	SUnder = chr(&amp;H2DED)
 end sub	
 
-Sub SetKinovarToCursor(oCursor)
+Function getCharStyleForParaStyle(oParStyleName$, Optional bSmall as Boolean)
+REM получить имя символьного стиля для sParaStyleName 
+	Dim pst_TextBody$, pst_Irmos_18$, pst_Small_18_WoRedLine$, pst_Small_18$, pst_Small_16$, pst_Irmos_16$ REM paragraph styles
+	Dim pst_ParaLettrine$, pst_ParaLettrine_1up$, pst_ParaLettrine_2up$
+	Dim pst_Ustav$, pst_UstavLeft$, pst_UstavCentered$
+	Dim pst_ParaBigLettrine$, pst_ParaBigLettrine_1up$, pst_ParaBigLettrine_2up$
+	Dim pst_TextBodyWoRedLine$
+	Dim chst_Kinovar$, chst_Kinovar_18$, chst_Kinovar_16$, chst_KinovarBlack$, chst_KinovarBlack_18$, chst_KinovarBlack_16$ REM Char styles
+	Dim sCharStyleName$
+	
+	REM Выдавать результат только для малых стилей, для любых остальных - &quot;киноварь&quot;
+	If IsMissing(bSmall) Then bSmall = False
+	
+	pst_TextBody = &quot;Text body&quot;
+	pst_Irmos_18 = &quot;Ирмос 18&quot;
+	pst_Small_18_WoRedLine = &quot;Малый 18 без красной строки&quot;
+	pst_Small_18 = &quot;Малый 18&quot;
+	pst_Small_16 = &quot;Малый 16&quot;
+	pst_Irmos_16 = &quot;Ирмос 16&quot;
+	
+	pst_ParaLettrine = &quot;Абзац с буквицей&quot;
+	pst_ParaLettrine_1up = &quot;Абзац с буквицей и надстрочник&quot;
+	pst_ParaLettrine_2up = &quot;Абзац с буквицей и два надстрочника&quot;
+
+	pst_ParaBigLettrine = &quot;Абзац с большой буквицей&quot;
+	pst_ParaBigLettrine_1up = &quot;Абзац с большой буквицей и надстрочник&quot;
+	pst_ParaBigLettrine_2up = &quot;Абзац с большой буквицей и два надстрочника&quot;
+
+	pst_TextBodyWoRedLine = &quot;Без красной строки&quot;
+
+	pst_Ustav = &quot;Устав&quot;
+	pst_UstavLeft = &quot;Устав влево&quot; 
+	pst_UstavCentered = &quot;Устав по центру&quot;
+
+	chst_Kinovar = &quot;киноварь&quot;
+	chst_Kinovar_18 = &quot;киноварь 18&quot; 
+	chst_Kinovar_16 = &quot;киноварь 16&quot; 
+	chst_KinovarBlack = &quot;киноварь черная&quot;
+	chst_KinovarBlack_18 = &quot;киноварь 18 черная&quot; 
+	chst_KinovarBlack_16 = &quot;киноварь 16 черная&quot; 
+	
+	If bSmall Then
+		If oParStyleName = pst_Small_18 _
+			OR oParStyleName = pst_Small_18_WoRedLine _
+			OR oParStyleName = pst_Irmos_18 Then
+		
+			sCharStyleName = chst_Kinovar_18
+	
+		ElseIf oParStyleName = pst_Small_16 _
+			OR oParStyleName = pst_Irmos_16 Then
+			sCharStyleName = chst_Kinovar_16
+			
+		ElseIf oParStyleName = pst_Ustav _
+			OR oParStyleName = pst_UstavLeft _
+			OR oParStyleName = pst_UstavCentered Then
+			sCharStyleName = chst_KinovarBlack_18
+			
+		Else sCharStyleName = chst_Kinovar
+		End If
+
+	Else
+		If oParStyleName = pst_TextBody _
+			OR oParStyleName = pst_ParaLettrine _
+			OR oParStyleName = pst_ParaLettrine_1up _
+			OR oParStyleName = pst_ParaLettrine_2up _
+			OR oParStyleName = pst_ParaBigLettrine _
+			OR oParStyleName = pst_ParaBigLettrine_1up _
+			OR oParStyleName = pst_ParaBigLettrine_2up _
+			OR oParStyleName = pst_TextBodyWoRedLine Then
+	
+			sCharStyleName = chst_Kinovar
+		
+		ElseIf oParStyleName = pst_Small_18 _
+			OR oParStyleName = pst_Small_18_WoRedLine _
+			OR oParStyleName = pst_Irmos_18 Then
+		
+			sCharStyleName = chst_Kinovar_18
+	
+		ElseIf oParStyleName = pst_Small_16 _
+			OR oParStyleName = pst_Irmos_16 Then
+			sCharStyleName = chst_Kinovar_16
+		
+		ElseIf oParStyleName = pst_Ustav _
+			OR oParStyleName = pst_UstavLeft _
+			OR oParStyleName = pst_UstavCentered Then
+			sCharStyleName = chst_KinovarBlack_18
+
+		Else sCharStyleName = &quot;&quot;
+		End If
+	
+	End If
+	getCharStyleForParaStyle = sCharStyleName
+
+End Function
+
+
+
+Sub SetKinovarToParaWithStyle()
+REM Set kinovar to first letter for all paragraphs with &quot;Text Body&quot; style.
+	Dim pst_TextBody$, pst_Irmos_18$, pst_Small_18_WoRedLine$, pst_Small_18$, pst_Small_16$, pst_Irmos_16$ REM paragraph styles
+	Dim oDoc
+	Dim oText
+	Dim oParEnum
+	Dim oPar
+	Dim oParStyleName$, sCharStyleName$
+	Dim oStart, oEnd
+	Dim oCursor
+
+	
+	InitSymbols
+	
+	oDoc = ThisComponent
+	
+	pst_TextBody = &quot;Text body&quot;
+	pst_Irmos_18 = &quot;Ирмос 18&quot;
+	pst_Small_18_WoRedLine = &quot;Малый 18 без красной строки&quot;
+	pst_Small_18 = &quot;Малый 18&quot;
+	pst_Small_16 = &quot;Малый 16&quot;
+	pst_Irmos_16 = &quot;Ирмос 16&quot;
+
+	
+	oText = oDoc.getText()
+	oParEnum = oText.createEnumeration()
+	While oParEnum.hasMoreElements()
+		oPar = oParEnum.nextElement()
+		oParStyleName = oPar.ParaStyleName
+		If oParStyleName = pst_TextBody _
+			OR oParStyleName = pst_Small_18 _
+			OR oParStyleName = pst_Small_18_WoRedLine _
+			OR oParStyleName = pst_Irmos_18 _
+			OR oParStyleName = pst_Small_16 _
+			OR oParStyleName = pst_Irmos_16 Then
+			oStart = oPar.getStart()
+			oCursor = oText.createTextCursorByRange(oStart)	
+			
+			sCharStyleName = getCharStyleForParaStyle(oParStyleName)
+			If sCharStyleName &lt;&gt; &quot;&quot; Then
+				setKinovarToTextCursor(oCursor, sCharStyleName)
+			Else exit sub
+			End If 
+		End If 
+	WEnd
+End Sub
+
+Sub SetKinovarToCursor(oCursor, KinovarStyleName)
 rem установить для текста в курсоре стиль киноварь
 	Dim oStyleFamilies As Variant
 	Dim oStyleFamilie As Variant
-	Dim KinovarStyleName$
 	Dim newChStyle
 	
-	KinovarStyleName = &quot;киноварь&quot;
     &apos; стили в документе
     oStyleFamilies = ThisComponent.getStyleFamilies()
     &apos; символьные стили
@@ -57,47 +200,97 @@ Sub SetKinovar()
 	&apos; вместе с надстрочниками 
  	&apos; BasicLibraries.LoadLibrary(&quot;XrayTool&quot;)
 	Dim oDoc
+	&apos;Dim chrst_Kinovar$
+	Dim sParaStyleName$
+	Dim sCharStyleName$
+
 
 	InitSymbols
+	&apos;chrst_Kinovar = &quot;киноварь&quot;
 	
 	oDoc = ThisComponent
    	oVC = oDoc.CurrentController.getViewCursor()
    	oTC = oVC.Text.createTextCursorByRange(oVC)
+   	sParaStyleName = oTC.ParaStyleName
+	sCharStyleName = getCharStyleForParaStyle(sParaStyleName, True)
+
+   	
    	With oTC
 	   	&apos; первый символ абзаца
 	   	.gotoStartOfParagraph(False)
 	   	.goRight(1, True)
-	   	SetKinovarToCursor(oTC)
+	   	SetKinovarToCursor(oTC, sCharStyleName)
 	   	.CollapseToEnd
 		 
 		&apos;надстрочники	   	
 	   	.goRight(1, True)
 	   	&apos; второй символ, звательце (или титло) или с под покрытием 
 	   	if .getString = Zvatelce or .getString = Titlo or .getString = SUnder Then
-	   		SetKinovarToCursor(oTC)
+	   		SetKinovarToCursor(oTC, sCharStyleName)
 	   		.CollapseToEnd
 	   		.goRight(1, True)
 	   		&apos; третий символ - оксия  или вария или покрытие
 	   		If .getString = OXia OR .getString = Varia OR .getString = Pokrytie  Then
-				SetKinovarToCursor(oTC)
+				SetKinovarToCursor(oTC, sCharStyleName)
 			End If
 		End If  	
 	End With
 End Sub
 
-Sub setKinToSelected
+Sub setKinovarToTextCursor(tc, chst)
+   	With tc
+	   	&apos; первый символ абзаца
+	   	.gotoStartOfParagraph(False)
+	   	.goRight(1, True)
+	   	SetKinovarToCursor(tc, chst)
+	   	.CollapseToEnd
+		 
+		&apos;надстрочники	   	
+	   	.goRight(1, True)
+	   	&apos; второй символ, звательце (или титло) или с под покрытием 
+	   	if .getString = Zvatelce or .getString = Titlo or .getString = SUnder Then
+	   		SetKinovarToCursor(tc, chst)
+	   		.CollapseToEnd
+	   		.goRight(1, True)
+	   		&apos; третий символ - оксия  или вария или покрытие
+	   		If .getString = OXia OR .getString = Varia OR .getString = Pokrytie  Then
+				SetKinovarToCursor(tc, chst)
+			End If
+		End If  	
+	End With
+End Sub
+
+
+Sub setKinToSelected()
 &apos;BasicLibraries.LoadLibrary(&quot;XrayTool&quot;)
 	&apos; установить для выделенного текста
-	&apos; стиль киноварь
+	&apos; стиль киноварь.\
+	&apos; Для малых абзацных стилей (18 и 16 кегля) стили символов соотв-е.
+	&apos; Для всех остальных - киноварь (20)
 	Dim all_selections
 	Dim first_selection
 	Dim oDoc, oTC
+	Dim sParaStyleName$
+	Dim sCharStyleName$
 
 	oDoc = ThisComponent
     all_selections = oDoc.getCurrentController().getSelection()
     first_selection = all_selections.getByIndex(0)
    	oTC = oDoc.Text.createTextCursorByRange(first_selection)
+	sParaStyleName = oTC.ParaStyleName
+	sCharStyleName = getCharStyleForParaStyle(sParaStyleName, True)
 	
-	SetKinovarToCursor(oTC)
+	SetKinovarToCursor(oTC, sCharStyleName)
 End sub
+
+Sub RemoveKinovar()
+
+End Sub
+
+
+Sub RemoveKinovarfromSelected()
+
+End Sub
+
+
 </script:module>
