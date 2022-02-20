@@ -29,6 +29,7 @@ REM получить имя символьного стиля для sParaStyleN
 	Dim pst_Ustav$, pst_UstavLeft$, pst_UstavCentered$
 	Dim pst_ParaBigLettrine$, pst_ParaBigLettrine_1up$, pst_ParaBigLettrine_2up$
 	Dim pst_TextBodyWoRedLine$
+	Dim pst_Glas$
 	Dim chst_Kinovar$, chst_Kinovar_18$, chst_Kinovar_16$, chst_KinovarBlack$, chst_KinovarBlack_18$, chst_KinovarBlack_16$ REM Char styles
 	Dim sCharStyleName$
 	
@@ -41,6 +42,7 @@ REM получить имя символьного стиля для sParaStyleN
 	pst_Small_18 = &quot;Малый 18&quot;
 	pst_Small_16 = &quot;Малый 16&quot;
 	pst_Irmos_16 = &quot;Ирмос 16&quot;
+	pst_Glas = &quot;Глас&quot;
 	
 	pst_ParaLettrine = &quot;Абзац с буквицей&quot;
 	pst_ParaLettrine_1up = &quot;Абзац с буквицей и надстрочник&quot;
@@ -55,6 +57,9 @@ REM получить имя символьного стиля для sParaStyleN
 	pst_Ustav = &quot;Устав&quot;
 	pst_UstavLeft = &quot;Устав влево&quot; 
 	pst_UstavCentered = &quot;Устав по центру&quot;
+	
+	pst_DateAndPlace = &quot;Дата и место&quot;
+	pst_DateAndPlaceInText = &quot;Дата и место в тексте&quot;
 
 	chst_Kinovar = &quot;киноварь&quot;
 	chst_Kinovar_18 = &quot;киноварь 18&quot; 
@@ -76,8 +81,13 @@ REM получить имя символьного стиля для sParaStyleN
 			
 		ElseIf oParStyleName = pst_Ustav _
 			OR oParStyleName = pst_UstavLeft _
-			OR oParStyleName = pst_UstavCentered Then
+			OR oParStyleName = pst_UstavCentered _
+			OR oParStyleName = pst_Glas Then
 			sCharStyleName = chst_KinovarBlack_18
+
+		ElseIf oParStyleName = pst_DateAndPlace _
+			OR oParStyleName = pst_DateAndPlaceInText Then
+			sCharStyleName = &quot;&quot;
 			
 		Else sCharStyleName = chst_Kinovar
 		End If
@@ -106,7 +116,8 @@ REM получить имя символьного стиля для sParaStyleN
 		
 		ElseIf oParStyleName = pst_Ustav _
 			OR oParStyleName = pst_UstavLeft _
-			OR oParStyleName = pst_UstavCentered Then
+			OR oParStyleName = pst_UstavCentered _
+			OR oParStyleName = pst_Glas Then
 			sCharStyleName = chst_KinovarBlack_18
 
 		Else sCharStyleName = &quot;&quot;
@@ -166,7 +177,7 @@ REM Set kinovar to first letter for all paragraphs with &quot;Text Body&quot; st
 	WEnd
 End Sub
 
-Sub SetKinovarToCursor(oCursor, KinovarStyleName)
+Sub SetKinovarToCursor(oCursor, KinovarStyleName$)
 rem установить для текста в курсоре стиль киноварь
 	Dim oStyleFamilies As Variant
 	Dim oStyleFamilie As Variant
@@ -214,51 +225,43 @@ Sub SetKinovar()
    	oTC = oVC.Text.createTextCursorByRange(oVC)
    	sParaStyleName = oTC.ParaStyleName
 	sCharStyleName = getCharStyleForParaStyle(sParaStyleName, True)
-
+	If sCharStyleName &lt;&gt; &quot;&quot; Then
+		oTC.gotoStartOfParagraph(False)
+		GrabFirstLetterWithSubscriptsAndSetKinovar(oTC, sCharStyleName)
+   	End If
    	
-   	With oTC
-	   	&apos; первый символ абзаца
-	   	.gotoStartOfParagraph(False)
+End Sub
+
+Sub GrabFirstLetterWithSubscriptsAndSetKinovar(vTC, CharStyleName$)
+REM В переданном курсоре (vTC) захватывает первую букву (с надстрочниками, если есть).
+REM и устанавливает киноварь (CharStyleName) для нее.
+REM Курсор уже в начале слова.
+
+   	With vTC
+	   	REM Первый символ
 	   	.goRight(1, True)
-	   	SetKinovarToCursor(oTC, sCharStyleName)
+	   	SetKinovarToCursor(vTC, CharStyleName)
 	   	.CollapseToEnd
 		 
-		&apos;надстрочники	   	
+		REM Надстрочники	   	
 	   	.goRight(1, True)
-	   	&apos; второй символ, звательце (или титло) или с под покрытием 
+	   	REM Второй символ, звательце (или титло) или с под покрытием 
 	   	if .getString = Zvatelce or .getString = Titlo or .getString = SUnder Then
-	   		SetKinovarToCursor(oTC, sCharStyleName)
+	   		SetKinovarToCursor(vTC, CharStyleName)
 	   		.CollapseToEnd
 	   		.goRight(1, True)
-	   		&apos; третий символ - оксия  или вария или покрытие
+	   		REM Третий символ - оксия  или вария или покрытие
 	   		If .getString = OXia OR .getString = Varia OR .getString = Pokrytie  Then
-				SetKinovarToCursor(oTC, sCharStyleName)
+				SetKinovarToCursor(vTC, CharStyleName)
 			End If
 		End If  	
 	End With
 End Sub
 
+
 Sub setKinovarToTextCursor(tc, chst)
-   	With tc
-	   	&apos; первый символ абзаца
-	   	.gotoStartOfParagraph(False)
-	   	.goRight(1, True)
-	   	SetKinovarToCursor(tc, chst)
-	   	.CollapseToEnd
-		 
-		&apos;надстрочники	   	
-	   	.goRight(1, True)
-	   	&apos; второй символ, звательце (или титло) или с под покрытием 
-	   	if .getString = Zvatelce or .getString = Titlo or .getString = SUnder Then
-	   		SetKinovarToCursor(tc, chst)
-	   		.CollapseToEnd
-	   		.goRight(1, True)
-	   		&apos; третий символ - оксия  или вария или покрытие
-	   		If .getString = OXia OR .getString = Varia OR .getString = Pokrytie  Then
-				SetKinovarToCursor(tc, chst)
-			End If
-		End If  	
-	End With
+   	tc.gotoStartOfParagraph(False)
+   	GrabFirstLetterWithSubscriptsAndSetKinovar(tc, chst)
 End Sub
 
 
@@ -280,8 +283,10 @@ Sub setKinToSelected()
    	oTC = oDoc.Text.createTextCursorByRange(first_selection)
 	sParaStyleName = oTC.ParaStyleName
 	sCharStyleName = getCharStyleForParaStyle(sParaStyleName, True)
+	If sCharStyleName &lt;&gt; &quot;&quot; Then
+		SetKinovarToCursor(oTC, sCharStyleName)
+	End If
 	
-	SetKinovarToCursor(oTC, sCharStyleName)
 End sub
 
 Sub RemoveKinovar()
