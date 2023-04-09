@@ -1,7 +1,10 @@
 # Kinovar
 Libre Office расширение для текстов с церковно-славянским языком.  
 
-## 0.0.7
+`fix: CharStyle to latin name (working with LO >= 7.5)`  
+`fix: Kinovar.odt compiling with LO > 5`
+
+## 0.0.8
 
 <ul>
 <li>Выставляет стиль "киноварь" для первой буквы абзаца (вместе с надстрочниками)</li>

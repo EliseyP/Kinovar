@@ -308,7 +308,7 @@ Sub RemoveCharStyleFromTextCursor(tc)
 	Dim chst_NoStyle$
 	Dim bCharStyleIsKinovar as Boolean
 	
-	chst_NoStyle = &quot;Без стиля символа&quot;
+	chst_NoStyle = &quot;Standard&quot;
 	
 	tc.gotoStartOfParagraph(False)
 	
