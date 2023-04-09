@@ -354,7 +354,7 @@ REM Удаляет киноварные символьные стили у вы�
 	Dim oDoc, oTC
 	Dim chst_NoStyle$
 
-	chst_NoStyle = &quot;Без стиля символа&quot;
+	chst_NoStyle = &quot;Standard&quot;
 
 	oDoc = ThisComponent
     all_selections = oDoc.getCurrentController().getSelection()
